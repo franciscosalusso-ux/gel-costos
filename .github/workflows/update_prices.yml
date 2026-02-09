@@ -31,6 +31,5 @@ jobs:
           git config --local user.name "github-actions"
           git config --local user.email "actions@github.com"
           git add historial_precios.csv
-          git commit -m "Actualizar historial de precios [GitHub Actions]" || echo "No hay cambios"
-          git push origin main
-
+git commit -m "Actualizar historial de precios [GitHub Actions]" || echo "No hay cambios"
+git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/franciscosalusso-ux/gel-costos.git main
