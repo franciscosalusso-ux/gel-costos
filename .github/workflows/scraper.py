@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import json
 import html
 import pandas as pd
-from openpyxl import load_workbook
+from datetime import datetime
+import os
 
 # ------------------ PRODUCTOS ------------------
 product_urls = [
@@ -13,9 +14,7 @@ product_urls = [
     {'name': 'Glicerina Refinada Alimenticia', 'url': 'https://puraquimica.com.ar/producto/glicerina-refinada-alimenticia-x-kg-vegetal/'}
 ]
 
-headers = {
-    'User-Agent': 'Mozilla/5.0'
-}
+headers = {'User-Agent': 'Mozilla/5.0'}
 
 results = []
 
@@ -40,62 +39,5 @@ for product_info in product_urls:
 
         if target_line:
             soup = BeautifulSoup(target_line, 'html.parser')
-            form_tag = soup.find('form', class_='variations_form')
+            form_tag = so_
 
-            if form_tag and 'data-product_variations' in form_tag.attrs:
-                variations_json_encoded = form_tag['data-product_variations']
-                variations_json_unescaped = html.unescape(variations_json_encoded).replace('\\/', '/')
-                variations_data = json.loads(variations_json_unescaped)
-
-                for variation in variations_data:
-                    description = BeautifulSoup(variation.get('variation_description', ''), 'html.parser').get_text(strip=True)
-                    if '1 kgs' in description:
-                        price = variation.get('display_price')
-                        if price:
-                            price_1kg = float(price)
-                        break
-
-    except Exception as e:
-        print("Error:", e)
-
-    results.append({'Product': product_name, 'Price': price_1kg})
-
-df_prices = pd.DataFrame(results)
-print(df_prices)
-
-# ------------------ GUARDAR HISTORIAL ------------------
-from datetime import datetime
-import os
-
-df_prices["fecha"] = datetime.now()
-
-archivo = "historial_precios.csv"
-
-if not os.path.exists(archivo):
-    df_prices.to_csv(archivo, index=False)
-else:
-    df_prices.to_csv(archivo, mode="a", header=False, index=False)
-
-print("Historial guardado correctamente")
-
-# Calcular costo por pote
-precios = {row["Product"]: row["Price"] for _, row in df_prices.iterrows()}
-
-costo_pote = (
-    precios["Carbopol Acrypol 940"]/40 +
-    precios["Nipagin Metilparabeno"]/200 +
-    precios["Trietanolamina 85%"]/40 +
-    precios["Glicerina Refinada Alimenticia"]/40
-)
-
-df_pote = pd.DataFrame([{
-    "Product": "COSTO_POTE",
-    "Price": costo_pote,
-    "fecha": datetime.now()
-}])
-
-df_prices = pd.concat([df_prices, df_pote])
-
-# Guardar CSV final con COSTO_POTE incluido
-df_prices.to_csv(archivo, index=False, mode='a', header=not os.path.exists(archivo))
-print("Archivo CSV actualizado con costo por pote")
