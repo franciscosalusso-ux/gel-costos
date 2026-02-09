@@ -95,3 +95,7 @@ df_pote = pd.DataFrame([{
 }])
 
 df_prices = pd.concat([df_prices, df_pote])
+
+# Guardar CSV final con COSTO_POTE incluido
+df_prices.to_csv(archivo, index=False, mode='a', header=not os.path.exists(archivo))
+print("Archivo CSV actualizado con costo por pote")
