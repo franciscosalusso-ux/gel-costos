@@ -32,4 +32,8 @@ jobs:
           git config --local user.name "github-actions"
           git config --local user.email "actions@github.com"
 
-      - name: Commit y p
+      - name: Commit y push de CSV actualizado
+        run: |
+          git add historial_precios.csv
+          git commit -m "Actualizar historial de precios [GitHub Actions]" || echo "No hay cambios que commitear"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
