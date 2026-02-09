@@ -1,10 +1,10 @@
 name: Actualizar precios gel
 
-# Ejecutar todos los días a las 9 AM hora Argentina (UTC-3 = 12 UTC)
 on:
   schedule:
+    # 9 AM Argentina = UTC-3 => 12 UTC
     - cron: '0 12 * * *'
-  workflow_dispatch: # permite ejecutarlo manualmente
+  workflow_dispatch: # permite ejecutar manualmente
 
 jobs:
   update:
@@ -21,16 +21,20 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          pip install pandas requests beautifulsoup4 openpyxl
+          pip install pandas requests beautifulsoup4 openpyxl streamlit
 
       - name: Ejecutar scraper
         run: |
           python scraper.py
 
-      - name: Configurar Git
+      - name: Commit y push de CSV actualizado
         run: |
           git config --local user.name "github-actions"
           git config --local user.email "actions@github.com"
+          git add historial_precios.csv
+          git diff --cached --quiet || git commit -m "Actualizar historial de precios [GitHub Actions]"
+          git push
+
 
       - name: Commit y push de CSV actualizado
         run: |
