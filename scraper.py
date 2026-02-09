@@ -78,42 +78,20 @@ else:
 
 print("Historial guardado correctamente")
 
-# ---------------- CALCULO COSTO POR POTE ----------------
-
-def get_price(product):
-    row = df_prices[df_prices["Product"] == product]
-    if len(row) == 0:
-        return 0
-    return float(row["Price"].values[0])
-
-precio_carbopol = get_price("Carbopol Acrypol 940")
-precio_nipagin = get_price("Nipagin Metilparabeno")
-precio_tea = get_price("Trietanolamina 85%")
-precio_glicerina = get_price("Glicerina Refinada Alimenticia")
+# Calcular costo por pote
+precios = {row["Product"]: row["Price"] for _, row in df_prices.iterrows()}
 
 costo_pote = (
-    precio_carbopol / 40 +
-    precio_nipagin / 200 +
-    precio_tea / 40 +
-    precio_glicerina / 40
+    precios["Carbopol Acrypol 940"]/40 +
+    precios["Nipagin Metilparabeno"]/200 +
+    precios["Trietanolamina 85%"]/40 +
+    precios["Glicerina Refinada Alimenticia"]/40
 )
 
-print("Costo insumos por pote:", costo_pote)
-
-# Guardar en historial
-from datetime import datetime
-import os
-
-fila_costo = pd.DataFrame([{
+df_pote = pd.DataFrame([{
     "Product": "COSTO_POTE",
     "Price": costo_pote,
     "fecha": datetime.now()
 }])
 
-archivo = "historial_precios.csv"
-
-if not os.path.exists(archivo):
-    pd.concat([df_prices, fila_costo]).to_csv(archivo, index=False)
-else:
-    pd.concat([df_prices, fila_costo]).to_csv(archivo, mode="a", header=False, index=False)
-
+df_prices = pd.concat([df_prices, df_pote])
