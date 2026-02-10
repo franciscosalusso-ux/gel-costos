@@ -4,10 +4,16 @@ import streamlit as st
 st.title("🧪 Dashboard Costos Gel Neutro")
 
 # ---------------- CARGA DE DATOS ----------------
-df = pd.read_csv("historial_precios.csv", parse_dates=["fecha"])
+df = pd.read_csv("historial_precios.csv")
+
+# Quitar espacios en los nombres de productos
+df["Product"] = df["Product"].str.strip()
 
 # Asegurarse de que Price sea numérico
 df["Price"] = pd.to_numeric(df["Price"], errors="coerce")
+
+# Asegurarse de que fecha sea datetime
+df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
 
 # ---------------- PRECIOS ACTUALES ----------------
 st.header("📊 Precios actuales")
@@ -32,21 +38,20 @@ if "COSTO_POTE" in df_latest["Product"].values:
 # ---------------- GRAFICOS ----------------
 st.header("📈 Evolución de precios")
 
-# Filtrar solo productos que no sean el costo del pote
-productos_insumos = [p for p in df["Product"].unique() if p != "COSTO_POTE"]
+# Filtrar solo insumos (quitar COSTO_POTE)
+insumos = [p for p in df["Product"].unique() if p != "COSTO_POTE"]
 
-for prod in productos_insumos:
-    data = df[df["Product"].str.strip() == prod].sort_values("fecha")
+for prod in insumos:
+    data = df[df["Product"] == prod].sort_values("fecha")
     
     st.subheader(prod)
     
-    # Filtrar filas válidas y asegurarse de que fecha sea índice
+    # Filtrar filas válidas y poner fecha como índice
     data_chart = data[["fecha", "Price"]].dropna().set_index("fecha")
     
     if not data_chart.empty:
         st.line_chart(data_chart)
     else:
         st.write("No hay datos para mostrar")
-
 
 
