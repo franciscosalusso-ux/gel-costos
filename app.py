@@ -39,29 +39,14 @@ st.markdown(f"**Última actualización:** {ultima_fecha.date()}")
 # ---------------- GRAFICO HISTORICO COSTO POTE ----------------
 st.header("📈 Histórico de costo insumos para un pote sin plástico")
 
-# Filtrar insumos (todos menos COSTO_POTE)
-insumos = [p for p in df["Product"].unique() if p != "COSTO_POTE"]
-
-# Filtrar solo los registros de COSTO_POTE
+# Filtrar solo los registros de COSTO_POTE y ordenar por fecha
 costo_pote_df = df[df["Product"] == "COSTO_POTE"].sort_values("fecha")
 
 if not costo_pote_df.empty:
-    historial_costos = []
-
-    for fecha in costo_pote_df["fecha"]:
-        # Para cada insumo, tomar el último precio conocido antes o en esa fecha
-        costo_total = 0
-        for insumo in insumos:
-            insumo_data = df[(df["Product"] == insumo) & (df["fecha"].notna()) & (df["fecha"] <= fecha)]
-            if not insumo_data.empty:
-                ultimo_precio = insumo_data.sort_values("fecha").iloc[-1]["Price"]
-                costo_total += ultimo_precio
-            else:
-                # Si no hay precio registrado nunca, asumimos 0
-                costo_total += 0
-        historial_costos.append({"fecha": fecha, "Costo_insumos_pote": costo_total})
-
-    historial_df = pd.DataFrame(historial_costos).set_index("fecha")
+    # Crear DataFrame con fecha como índice y Price como valor
+    historial_df = costo_pote_df.set_index("fecha")[["Price"]].rename(columns={"Price": "Costo_insumos_pote"})
+    
+    # Graficar
     st.line_chart(historial_df)
 else:
     st.write("No hay datos históricos de COSTO_POTE para mostrar")
