@@ -3,7 +3,6 @@ name: Actualizar precios gel - Prueba Cron
 on:
   schedule:
     - cron: '*/1 * * * *'
-  workflow_dispatch:
 
 # ESTO ES VITAL PARA EL CRON
 permissions:
