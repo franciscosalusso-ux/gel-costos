@@ -41,36 +41,33 @@ if "COSTO_POTE" in df_latest["Product"].values:
     costo_pote = df_latest.loc[df_latest["Product"] == "COSTO_POTE", "Price"].values[0]
     st.metric("💰 Costo insumos para un pote sin plástico", f"${costo_pote:.2f}")
 
-# ---------------- GRAFICOS ----------------
-st.header("📈 Evolución de precios históricos")
-
-# Lista de todos los productos incluyendo COSTO_POTE
-productos = df["Product"].unique()
-
-for prod in productos:
-    data = df[df["Product"] == prod].sort_values("fecha")
-    
-    # Cambiar nombre para mostrar en gráfico si es COSTO_POTE
-    prod_display = prod if prod != "COSTO_POTE" else "Costo insumos para un pote sin plástico"
-    
-    st.subheader(prod_display)
-    
-    # Filtrar filas válidas y poner fecha como índice
-    data_chart = data[["fecha", "Price"]].dropna().set_index("fecha")
-    
-    if not data_chart.empty:
-        st.line_chart(data_chart)
-    else:
-        st.write("No hay datos para mostrar")
-
 # ---------------- GRAFICO HISTORICO COSTO POTE ----------------
-if "COSTO_POTE" in df["Product"].values:
-    st.header("📈 Histórico de costo insumos para un pote sin plástico")
-    data_costo_pote = df[df["Product"] == "COSTO_POTE"].sort_values("fecha")
-    data_costo_pote_chart = data_costo_pote[["fecha", "Price"]].dropna().set_index("fecha")
-    
-    if not data_costo_pote_chart.empty:
-        st.line_chart(data_costo_pote_chart)
-    else:
-        st.write("No hay datos para mostrar del costo de pote")
+st.header("📈 Histórico de costo insumos para un pote sin plástico")
+
+# Filtrar insumos (todos menos COSTO_POTE)
+insumos = [p for p in df["Product"].unique() if p != "COSTO_POTE"]
+
+# Filtrar solo los registros de COSTO_POTE
+costo_pote_df = df[df["Product"] == "COSTO_POTE"].sort_values("fecha")
+
+if not costo_pote_df.empty:
+    historial_costos = []
+
+    for fecha in costo_pote_df["fecha"]:
+        # Para cada insumo, tomar el último precio conocido antes o en esa fecha
+        costo_total = 0
+        for insumo in insumos:
+            insumo_data = df[(df["Product"] == insumo) & (df["fecha"].notna()) & (df["fecha"] <= fecha)]
+            if not insumo_data.empty:
+                ultimo_precio = insumo_data.sort_values("fecha").iloc[-1]["Price"]
+                costo_total += ultimo_precio
+            else:
+                # Si no hay precio registrado nunca, asumimos 0
+                costo_total += 0
+        historial_costos.append({"fecha": fecha, "Costo_insumos_pote": costo_total})
+
+    historial_df = pd.DataFrame(historial_costos).set_index("fecha")
+    st.line_chart(historial_df)
+else:
+    st.write("No hay datos históricos de COSTO_POTE para mostrar")
 
