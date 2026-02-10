@@ -2,9 +2,9 @@ name: Actualizar precios gel - Prueba Cron
 
 on:
   schedule:
-    - cron: '*/1 * * * *'
+    - cron: '*/5 * * * *'  # Cambiado a 5 min para mayor estabilidad
+  workflow_dispatch:
 
-# ESTO ES VITAL PARA EL CRON
 permissions:
   contents: write
 
@@ -13,27 +13,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4 # Actualizado a v4 (más estable)
 
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11  # Estable y soportado
+          python-version: '3.11'
 
       - name: Instalar dependencias
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install pandas requests beautifulsoup4 openpyxl
 
       - name: Ejecutar scraper
         run: python scraper.py
 
-      - name: Commit y push de CSV actualizado
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Commit y push
         run: |
-          git config --local user.name "github-actions"
-          git config --local user.email "actions@github.com"
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git add historial_precios.csv
-          git commit -m "Actualizar historial de precios [GitHub Actions]" || echo "No hay cambios"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/franciscosalusso-ux/gel-costos.git main
+          # Si no hay cambios, el comando no falla (gracias al || exit 0)
+          git commit -m "Actualizar precios: $(date +'%Y-%m-%d %H:%M')" || exit 0
+          git push
