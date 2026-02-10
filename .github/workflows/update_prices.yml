@@ -1,40 +1,56 @@
-name: Actualizar precios gel
+import pandas as pd
+import streamlit as st
 
-# Ejecutar todos los días a las 9 AM hora Argentina (UTC-3 = 12 UTC)
-on:
-  schedule:
-    - cron: '0 12 * * *'  # 9 AM Argentina
-  workflow_dispatch:       # permite ejecutarlo manualmente
+st.title("🧪 Dashboard Costos Gel Neutro")
 
-jobs:
-  update:
-    runs-on: ubuntu-latest
+# ---------------- CARGA DE DATOS ----------------
+df = pd.read_csv("historial_precios.csv")
 
-    steps:
-      - name: Clonar repo
-        uses: actions/checkout@v3
+# Quitar espacios en los nombres de productos
+df["Product"] = df["Product"].str.strip()
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: 3.14
+# Asegurarse de que Price sea numérico
+df["Price"] = pd.to_numeric(df["Price"], errors="coerce")
 
-      - name: Instalar dependencias
-        run: |
-          pip install pandas requests beautifulsoup4 openpyxl
+# Asegurarse de que fecha sea datetime
+df["fecha"] = pd.to_datetime(df["fecha"], errors="coerce")
 
-      - name: Ejecutar scraper
-        run: |
-          python scraper.py
+# ---------------- PRECIOS ACTUALES ----------------
+st.header("📊 Precios actuales")
 
-      - name: Commit y push de CSV actualizado
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --local user.name "github-actions"
-          git config --local user.email "actions@github.com"
-          git add historial_precios.csv
-          git commit -m "Actualizar historial de precios [GitHub Actions]" || echo "No hay cambios"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/franciscosalusso-ux/gel-costos.git main
+# Tomar último registro por producto
+df_latest = df.sort_values("fecha").groupby("Product", as_index=False).tail(1)
 
+# Guardar la fecha para mostrarla debajo
+ultima_fecha = df_latest["fecha"].max()
+
+# Mostrar solo Product y Price sin índice
+st.dataframe(df_latest[["Product", "Price"]].reset_index(drop=True), use_container_width=True)
+
+# Mostrar la fecha debajo
+st.markdown(f"**Última actualización:** {ultima_fecha.date()}")
+
+# Mostrar costo de pote sin plástico si existe
+if "COSTO_POTE" in df_latest["Product"].values:
+    costo_pote = df_latest.loc[df_latest["Product"] == "COSTO_POTE", "Price"].values[0]
+    st.metric("💰 Costo de pote sin plástico (sin envase)", f"${costo_pote:.2f}")
+
+# ---------------- GRAFICOS ----------------
+st.header("📈 Evolución de precios")
+
+# Filtrar solo insumos (quitar COSTO_POTE)
+insumos = [p for p in df["Product"].unique() if p != "COSTO_POTE"]
+
+for prod in insumos:
+    data = df[df["Product"] == prod].sort_values("fecha")
+    
+    st.subheader(prod)
+    
+    # Filtrar filas válidas y poner fecha como índice
+    data_chart = data[["fecha", "Price"]].dropna().set_index("fecha")
+    
+    if not data_chart.empty:
+        st.line_chart(data_chart)
+    else:
+        st.write("No hay datos para mostrar")
 
