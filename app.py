@@ -19,20 +19,26 @@ ultima_fecha = df_latest["fecha"].max()
 st.dataframe(df_latest[["Product", "Price"]], use_container_width=True)
 
 # Mostrar la fecha debajo
-st.markdown(f"**Última actualización:** {ultima_fecha}")
+st.markdown(f"**Última actualización:** {ultima_fecha.date()}")
 
-# Mostrar costo por pote (si existe)
+# Mostrar costo por pote sin plástico (si existe)
 if "COSTO_POTE" in df_latest["Product"].values:
     costo_pote = df_latest[df_latest["Product"] == "COSTO_POTE"]["Price"].values[0]
-    st.metric("💰 Costo insumos por pote (sin envase)", f"${costo_pote:.2f}")
+    st.metric("💰 Costo pote sin plástico (sin envase)", f"${costo_pote:.2f}")
 
 # ---------------- GRAFICOS ----------------
 st.header("📈 Evolución de precios")
 productos = df["Product"].unique()
 
 for prod in productos:
-    data = df[df["Product"] == prod]
+    data = df[df["Product"] == prod].sort_values("fecha")
     st.subheader(prod)
-    st.line_chart(data.set_index("fecha")["Price"])
+    
+    # Verificar que haya datos válidos
+    if not data.empty:
+        data_chart = data.set_index("fecha")["Price"].dropna()
+        st.line_chart(data_chart)
+    else:
+        st.write("No hay datos para mostrar")
 
 
