@@ -2,7 +2,7 @@ name: Actualizar precios gel - Prueba Cron
 
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Cambiado a 5 min para mayor estabilidad
+    - '0 */12 * * *'
   workflow_dispatch:
 
 permissions:
