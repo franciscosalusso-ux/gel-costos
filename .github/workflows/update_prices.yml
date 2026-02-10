@@ -1,10 +1,9 @@
 name: Actualizar precios gel
 
-# Ejecutar todos los días a las 9 AM hora Argentina (UTC-3 = 12 UTC)
 on:
   schedule:
-    - cron: '0 12 * * *'
-  workflow_dispatch: # permite ejecutarlo manualmente
+    - cron: '0 12 * * *'  # 9 AM hora Argentina
+  workflow_dispatch:  # permite ejecutar manualmente
 
 jobs:
   update:
@@ -33,4 +32,3 @@ jobs:
           commit_user_name: "github-actions"
           commit_user_email: "actions@github.com"
           branch: main
-
