@@ -1,10 +1,10 @@
-name: Actualizar precios gel
+name: Actualizar precios gel - Prueba Cron
 
-# Ejecutar todos los días a las 9 AM hora Argentina (UTC-3 = 12 UTC)
+# Workflow para testear cron jobs
 on:
   schedule:
-    - cron: '0 12 * * *'  # 9 AM Argentina
-  workflow_dispatch:       # permite ejecutarlo manualmente
+    - cron: '0 * * * *'  # Cada hora
+  workflow_dispatch:      # Permite ejecutarlo manualmente también
 
 jobs:
   update:
@@ -17,15 +17,15 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.14
+          python-version: 3.11  # Estable y soportado
 
       - name: Instalar dependencias
         run: |
+          pip install --upgrade pip
           pip install pandas requests beautifulsoup4 openpyxl
 
       - name: Ejecutar scraper
-        run: |
-          python scraper.py
+        run: python scraper.py
 
       - name: Commit y push de CSV actualizado
         env:
@@ -36,4 +36,3 @@ jobs:
           git add historial_precios.csv
           git commit -m "Actualizar historial de precios [GitHub Actions]" || echo "No hay cambios"
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/franciscosalusso-ux/gel-costos.git main
-
