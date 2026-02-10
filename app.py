@@ -36,11 +36,6 @@ st.dataframe(df_latest_display[["Product", "Price"]].reset_index(drop=True), use
 # Mostrar la fecha debajo
 st.markdown(f"**Última actualización:** {ultima_fecha.date()}")
 
-# Mostrar costo insumos para un pote si existe
-if "COSTO_POTE" in df_latest["Product"].values:
-    costo_pote = df_latest.loc[df_latest["Product"] == "COSTO_POTE", "Price"].values[0]
-    st.metric("💰 Costo insumos para un pote sin plástico", f"${costo_pote:.2f}")
-
 # ---------------- GRAFICO HISTORICO COSTO POTE ----------------
 st.header("📈 Histórico de costo insumos para un pote sin plástico")
 
