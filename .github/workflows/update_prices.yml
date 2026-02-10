@@ -1,15 +1,17 @@
 name: Actualizar precios gel - Prueba Cron
 
-# Workflow para testear cron jobs
 on:
   schedule:
-    - cron: '0 * * * *'  # Cada hora
-  workflow_dispatch:      # Permite ejecutarlo manualmente también
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+# ESTO ES VITAL PARA EL CRON
+permissions:
+  contents: write
 
 jobs:
   update:
     runs-on: ubuntu-latest
-
     steps:
       - name: Clonar repo
         uses: actions/checkout@v3
