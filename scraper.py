@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import json
 import html
 import pandas as pd
-from openpyxl import load_workbook
+from datetime import datetime
+import os
 
 # ------------------ PRODUCTOS ------------------
 product_urls = [
@@ -13,9 +14,7 @@ product_urls = [
     {'name': 'Glicerina Refinada Alimenticia', 'url': 'https://puraquimica.com.ar/producto/glicerina-refinada-alimenticia-x-kg-vegetal/'}
 ]
 
-headers = {
-    'User-Agent': 'Mozilla/5.0'
-}
+headers = {'User-Agent': 'Mozilla/5.0'}
 
 results = []
 
@@ -25,14 +24,12 @@ for product_info in product_urls:
     url = product_info['url']
     price_1kg = 'N/A'
 
-    print(f"Procesando {product_name}")
-
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
         lines = response.text.splitlines()
-
         target_line = None
+
         for line in lines:
             if '<form class="variations_form' in line:
                 target_line = line
@@ -56,29 +53,13 @@ for product_info in product_urls:
                         break
 
     except Exception as e:
-        print("Error:", e)
+        print(f"Error {product_name}: {e}")
 
     results.append({'Product': product_name, 'Price': price_1kg})
 
 df_prices = pd.DataFrame(results)
-print(df_prices)
 
-# ------------------ GUARDAR HISTORIAL ------------------
-from datetime import datetime
-import os
-
-df_prices["fecha"] = datetime.now()
-
-archivo = "historial_precios.csv"
-
-if not os.path.exists(archivo):
-    df_prices.to_csv(archivo, index=False)
-else:
-    df_prices.to_csv(archivo, mode="a", header=False, index=False)
-
-print("Historial guardado correctamente")
-
-# Calcular costo por pote
+# ------------------ COSTO POR POTE ------------------
 precios = {row["Product"]: row["Price"] for _, row in df_prices.iterrows()}
 
 costo_pote = (
@@ -95,3 +76,13 @@ df_pote = pd.DataFrame([{
 }])
 
 df_prices = pd.concat([df_prices, df_pote])
+
+# ------------------ GUARDAR HISTORIAL ------------------
+archivo = "historial_precios.csv"
+
+if not os.path.exists(archivo):
+    df_prices.to_csv(archivo, index=False)
+else:
+    df_prices.to_csv(archivo, mode="a", header=False, index=False)
+
+print("Historial guardado correctamente")
