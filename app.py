@@ -53,5 +53,3 @@ for prod in insumos:
         st.line_chart(data_chart)
     else:
         st.write("No hay datos para mostrar")
-
-
