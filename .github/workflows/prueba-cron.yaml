@@ -1,3 +1,5 @@
+name: Prueba Cron
+
 on:
   schedule:
     - cron: '*/5 * * * *'
@@ -9,4 +11,6 @@ jobs:
   debug:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Hola, cron funciona: $(date)"
+      - name: Mensaje de prueba
+        run: |
+          echo "Hola, cron funciona: $(date)"
